@@ -1,49 +1,44 @@
-
-    // Функція, яка зберігає стан форми в локальне сховище
-    function saveFormState() {
-      const email = document.querySelector('input[name="email"]').value;
-      const message = document.querySelector('textarea[name="message"]').value;
-      const formData = { email, message };
-
-      localStorage.setItem('feedback-form-state', JSON.stringify(formData));
-    }
-
-    // Оновлення сховища не частіше, ніж раз на 500 мілісекунд
     import throttle from 'lodash.throttle';
-    const saveFormStateThrottled = throttle(saveFormState, 500);
 
-    // Виклик функції saveFormStateThrottled при події input на формі
-    document.querySelector('.feedback-form').addEventListener('input', saveFormStateThrottled);
+    // Отримання посилання на форму
+    const form = document.querySelector('.feedback-form');
 
-    // Функція, яка завантажує стан форми з локального сховища
-    function loadFormState() {
-      const formData = JSON.parse(localStorage.getItem('feedback-form-state'));
+    // Отримання полів форми
+    const emailInput = form.querySelector('input[name="email"]');
+    const messageInput = form.querySelector('textarea[name="message"]');
 
-      if (formData) {
-        document.querySelector('input[name="email"]').value = formData.email;
-        document.querySelector('textarea[name="message"]').value = formData.message;
+    // Отримання ключа для сховища
+    const storageKey = 'feedback-form-state';
+
+    // Функція, яка зберігає значення полів у локальне сховище
+    const saveFormState = () => {
+      const state = {
+        email: emailInput.value,
+        message: messageInput.value}
+        localStorage.setItem(storageKey, JSON.stringify(state))
+      };
+        
+    // Функція, яка заповнює поля форми зі значеннями з локального сховища
+    const fillFormFromStorage = () => {
+      const savedState = localStorage.getItem(storageKey);
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        emailInput.value = state.email;
+        messageInput.value = state.message;
       }
-    }
-
-    // Виклик функції loadFormState під час завантаження сторінки
-    window.addEventListener('load', loadFormState);
+    };
 
     // Очищення сховища та полів форми при сабміті форми
-    document.querySelector('.feedback-form').addEventListener('submit', function(event) {
-      event.preventDefault();
-      clearFormState();
-      console.log(JSON.parse(localStorage.getItem('feedback-form-state')));
-    });
-
-    // Очищення сховища та полів форми
-    function clearFormState() {
-      localStorage.removeItem('feedback-form-state');
-      document.querySelector('input[name="email"]').value = '';
-      document.querySelector('textarea[name="message"]').value = '';
-    }
-
-   
-
-
+    const submitHandler = (e) => {
+      e.preventDefault();
+      const dataForm = {email: emailInput.value, message: messageInput.value};
+      console.log(dataForm);
+      emailInput.value = '';
+      messageInput.value = '';
+      localStorage.removeItem(storageKey);
+    };
     
+    form.addEventListener('input', throttle(saveFormState, 500));
+    document.addEventListener('DOMContentLoaded', fillFormFromStorage);
+    form.addEventListener('submit', submitHandler);
 
